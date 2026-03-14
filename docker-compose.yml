@@ -1,0 +1,7 @@
+services:
+  cineops:
+    build: .
+    container_name: cineops_app
+    ports:
+      - "8000:8000"
+    restart: always

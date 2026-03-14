@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineOps Movie Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --netflix-red: #e50914;
+            --bg-dark: #0b0b0b;
+            --bg-dark-soft: #141414;
+            --bg-card: #181818;
+            --text-main: #f5f5f5;
+            --text-muted: #b3b3b3;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: "Segoe UI", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.68));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+        }
+
+        .brand-logo {
+            color: var(--netflix-red);
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .brand-logo:hover,
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--netflix-red) !important;
+        }
+
+        .nav-link {
+            color: #e6e6e6 !important;
+        }
+
+        .navbar-search {
+            min-width: 220px;
+            max-width: 340px;
+        }
+
+        .search-field {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-field .search-icon {
+            position: absolute;
+            left: .95rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8f8f8f;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .search-input {
+            background: var(--bg-dark-soft);
+            border: 1px solid #2a2a2a;
+            color: #fff;
+            border-radius: 999px;
+            padding: .75rem 1.05rem .75rem 2.5rem;
+        }
+
+        .search-input::placeholder {
+            color: #8a8a8a;
+        }
+
+        .search-input:focus {
+            background: #171717;
+            border-color: var(--netflix-red);
+            box-shadow: 0 0 0 .22rem rgba(229, 9, 20, .26);
+            color: #fff;
+        }
+
+        .search-btn,
+        .trailer-btn {
+            border-radius: 999px;
+            background: var(--netflix-red);
+            border: none;
+            color: #fff;
+            padding: .7rem 1.2rem;
+            font-weight: 700;
+        }
+
+        .search-btn:hover,
+        .trailer-btn:hover {
+            background: #ff1f2b;
+            color: #fff;
+        }
+
+        .hero {
+            min-height: 68vh;
+            border-radius: 14px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(95deg, rgba(0, 0, 0, .92) 0%, rgba(0, 0, 0, .62) 42%, rgba(0, 0, 0, .28) 100%), #1a1a1a;
+            display: flex;
+            align-items: end;
+            margin-top: 16px;
+        }
+
+        .hero.has-image {
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero-content {
+            max-width: 760px;
+            padding: 2.4rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 4.1rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: .3px;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            margin-bottom: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .meta-pill {
+            background: rgba(229, 9, 20, 0.18);
+            border: 1px solid rgba(229, 9, 20, 0.35);
+            color: #fff;
+            border-radius: 999px;
+            padding: .32rem .7rem;
+            font-size: .85rem;
+            margin-right: .5rem;
+        }
+
+        .info-btn {
+            border-radius: 999px;
+            font-weight: 700;
+            padding: .65rem 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .info-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+        }
+
+        .search-wrap {
+            margin: 1.75rem 0 2.4rem;
+        }
+
+        .section-block {
+            margin-bottom: 2.25rem;
+        }
+
+        .section-title {
+            font-weight: 700;
+            margin-bottom: .9rem;
+        }
+
+        .horizontal-scroll {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: .2rem .05rem .8rem;
+            scrollbar-width: thin;
+            scrollbar-color: #4a4a4a transparent;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb {
+            background: #3f3f3f;
+            border-radius: 999px;
+        }
+
+        .horizontal-scroll .movie-card {
+            flex: 0 0 calc(100% - .5rem);
+            max-width: calc(100% - .5rem);
+        }
+
+        @media (min-width: 576px) {
+            .horizontal-scroll .movie-card {
+                flex: 0 0 calc(50% - .6rem);
+                max-width: calc(50% - .6rem);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .horizontal-scroll .movie-card {
+                flex: 0 0 calc(33.333% - .7rem);
+                max-width: calc(33.333% - .7rem);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .horizontal-scroll .movie-card {
+                flex: 0 0 calc(25% - .75rem);
+                max-width: calc(25% - .75rem);
+            }
+        }
+
+        @media (min-width: 1500px) {
+            .horizontal-scroll .movie-card {
+                flex: 0 0 calc(20% - .8rem);
+                max-width: calc(20% - .8rem);
+            }
+        }
+
+        .movie-card {
+            background: var(--bg-card);
+            border: 1px solid #202020;
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all .3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: cardFadeIn .55s ease forwards;
+        }
+
+        .horizontal-scroll .movie-card:nth-child(2) { animation-delay: .05s; }
+        .horizontal-scroll .movie-card:nth-child(3) { animation-delay: .1s; }
+        .horizontal-scroll .movie-card:nth-child(4) { animation-delay: .15s; }
+        .horizontal-scroll .movie-card:nth-child(5) { animation-delay: .2s; }
+        .horizontal-scroll .movie-card:nth-child(6) { animation-delay: .25s; }
+
+        @keyframes cardFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .movie-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .poster-wrap {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .movie-poster {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            background: #222;
+            transition: transform .3s ease;
+        }
+
+        .movie-card:hover .movie-poster {
+            transform: scale(1.08);
+        }
+
+        .rating-badge {
+            position: absolute;
+            left: .7rem;
+            top: .7rem;
+            background: rgba(0, 0, 0, .82);
+            color: #ffd54a;
+            padding: .3rem .55rem;
+            border-radius: 999px;
+            font-size: .82rem;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, .22);
+            z-index: 6;
+        }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 42px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity .3s ease;
+            text-shadow: 0 8px 25px rgba(0, 0, 0, .65);
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .movie-card:hover .play-icon {
+            opacity: 1;
+        }
+
+        .fav-btn {
+            position: absolute;
+            right: .7rem;
+            top: .7rem;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .24);
+            background: rgba(0, 0, 0, .62);
+            color: #f3f3f3;
+            display: grid;
+            place-items: center;
+            z-index: 6;
+        }
+
+        .fav-btn:hover {
+            color: #ff5a66;
+            border-color: rgba(255, 90, 102, .6);
+        }
+
+        .fav-btn.active {
+            color: #ff5a66;
+            border-color: rgba(255, 90, 102, .7);
+        }
+
+        .movie-body {
+            padding: .9rem .95rem 1rem;
+        }
+
+        .movie-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: .35rem;
+            min-height: 2.6rem;
+            line-height: 1.3;
+        }
+
+        .movie-year {
+            color: var(--text-muted);
+            font-size: .85rem;
+            margin-bottom: .45rem;
+        }
+
+        .movie-meta {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: var(--text-muted);
+            font-size: .9rem;
+        }
+
+        .movie-genre {
+            color: #d6d6d6;
+            font-size: .82rem;
+            margin-top: .45rem;
+            min-height: 1rem;
+        }
+
+        .rating {
+            color: #ffd54a;
+            font-weight: 700;
+        }
+
+        .card-actions {
+            margin-top: .65rem;
+            display: flex;
+            gap: .45rem;
+        }
+
+        .card-actions .btn {
+            border-radius: 999px;
+            font-size: .78rem;
+            padding: .35rem .65rem;
+            line-height: 1;
+        }
+
+        .card-trailer-btn {
+            background: rgba(229, 9, 20, .88);
+            border: 1px solid rgba(229, 9, 20, .88);
+            color: #fff;
+        }
+
+        .card-trailer-btn:hover {
+            background: #ff1f2b;
+            border-color: #ff1f2b;
+            color: #fff;
+        }
+
+        .card-info-btn {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .22);
+            color: #fff;
+        }
+
+        .card-info-btn:hover {
+            background: rgba(255, 255, 255, .15);
+            color: #fff;
+        }
+
+        .empty-state {
+            background: #121212;
+            border: 1px dashed #303030;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .skeleton-wrap {
+            display: none;
+            margin-top: 1.2rem;
+        }
+
+        .skeleton-track {
+            display: flex;
+            gap: 1rem;
+            overflow: hidden;
+            margin-bottom: 1.8rem;
+        }
+
+        .skeleton-card {
+            flex: 0 0 calc(25% - .75rem);
+            height: 280px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #1b1b1b 25%, #2a2a2a 38%, #1b1b1b 63%);
+            background-size: 400% 100%;
+            animation: shimmer 1.4s ease infinite;
+        }
+
+        @media (max-width: 991.98px) {
+            .skeleton-card { flex: 0 0 calc(33.333% - .7rem); }
+        }
+
+        @media (max-width: 767.98px) {
+            .hero { min-height: 52vh; }
+            .hero-content { padding: 1.25rem; }
+            .movie-title { min-height: auto; }
+            .navbar-search { max-width: 100%; }
+            .skeleton-card { flex: 0 0 calc(50% - .6rem); }
+        }
+
+        @media (max-width: 575.98px) {
+            .skeleton-card { flex: 0 0 calc(100% - .5rem); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        .cineops-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            background: #0a0a0a;
+            color: var(--text-muted);
+            padding: 1.2rem 0;
+            margin-top: 2.5rem;
+        }
+
+        .cineops-footer a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .cineops-footer a:hover {
+            color: var(--netflix-red);
+        }
+
+        .modal-content {
+            background: #121212;
+            border: 1px solid #2f2f2f;
+            color: var(--text-main);
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: #2a2a2a;
+        }
+
+        .modal-poster {
+            width: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+            min-height: 280px;
+        }
+
+        .provider-region {
+            color: var(--text-muted);
+            font-size: .85rem;
+            margin-bottom: .6rem;
+        }
+
+        .provider-group {
+            margin-bottom: .9rem;
+        }
+
+        .provider-group-title {
+            font-weight: 700;
+            font-size: .88rem;
+            margin-bottom: .45rem;
+            color: #ececec;
+        }
+
+        .provider-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .55rem;
+        }
+
+        .provider-card {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            background: #1a1a1a;
+            border: 1px solid #2c2c2c;
+            border-radius: 10px;
+            color: #f2f2f2;
+            text-decoration: none;
+            padding: .4rem .55rem;
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+
+        .provider-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, .35);
+            border-color: rgba(229, 9, 20, .55);
+            color: #fff;
+        }
+
+        .provider-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            object-fit: cover;
+            background: #2b2b2b;
+        }
+
+        .trailer-frame-wrap {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #050505;
+        }
+
+        .trailer-frame-wrap iframe,
+        .trailer-frame-wrap .trailer-fallback {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .trailer-fallback {
+            display: grid;
+            place-items: center;
+            color: #d7d7d7;
+            background: #0f0f0f;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .trailer-actions {
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+
+        .trailer-actions.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid px-3 px-md-4 py-2">
+            <a class="navbar-brand brand-logo" href="/">
+                <i class="bi bi-film"></i> CineOps
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-lg-3">
+                    <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#movies">Movies</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#trending">Trending</a></li>
+                </ul>
+                <form class="d-flex navbar-search search-form" method="GET" action="/">
+                    <div class="search-field me-2">
+                        <i class="bi bi-search search-icon"></i>
+                        <input class="form-control search-input" type="search" name="q" placeholder="Search movies..." value="{{ request.GET.q }}" aria-label="Search">
+                    </div>
+                    <button class="btn search-btn" type="submit"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-3 px-md-4 pb-4" id="mainContent">
+        {% if movies and movies.0 %}
+            <section id="heroSection" class="hero has-image" style="background-image: linear-gradient(95deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.62) 42%, rgba(0,0,0,.28) 100%), url('https://image.tmdb.org/t/p/w1280{{ movies.0.poster_path }}');">
+                <div class="hero-content">
+                    <span class="meta-pill">Featured</span>
+                    <h1 id="heroTitle">{{ movies.0.title }}</h1>
+                    <p id="heroOverview">{{ movies.0.overview|default:"Discover trending cinema picks right now."|truncatechars:220 }}</p>
+                    <div>
+                        <span class="meta-pill"><i class="bi bi-star-fill"></i> <span id="heroRating">{{ movies.0.vote_average|floatformat:1 }}</span></span>
+                        <span class="meta-pill" id="heroYear">{{ movies.0.release_date|default:"N/A"|slice:":4" }}</span>
+                    </div>
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <button class="btn trailer-btn watch-trailer-btn" id="heroTrailerBtn" type="button" data-movie-id="{{ movies.0.id }}" data-movie-title="{{ movies.0.title|escape }}" data-bs-toggle="modal" data-bs-target="#trailerModal">
+                            <i class="bi bi-play-fill"></i> Watch Trailer
+                        </button>
+                        <button class="btn info-btn details-btn"
+                                id="heroInfoBtn"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#movieModal"
+                                data-id="{{ movies.0.id }}"
+                                data-title="{{ movies.0.title|escape }}"
+                                data-overview="{{ movies.0.overview|default:'No overview available.'|escape }}"
+                                data-rating="{{ movies.0.vote_average|floatformat:1 }}"
+                                data-release="{{ movies.0.release_date|default:'N/A'|escape }}"
+                                data-genre-ids="{% if movies.0.genre_ids %}{{ movies.0.genre_ids|join:',' }}{% else %}{% endif %}"
+                                data-poster="{% if movies.0.poster_path %}https://image.tmdb.org/t/p/w500{{ movies.0.poster_path }}{% else %}https://via.placeholder.com/500x750?text=No+Poster{% endif %}">
+                            <i class="bi bi-info-circle"></i> More Info
+                        </button>
+                    </div>
+                </div>
+            </section>
+        {% else %}
+            <section id="heroSection" class="hero">
+                <div class="hero-content">
+                    <span class="meta-pill">Featured</span>
+                    <h1 id="heroTitle">Welcome to CineOps</h1>
+                    <p id="heroOverview">Explore trending movies in a modern streaming-style interface.</p>
+                    <div>
+                        <span class="meta-pill"><i class="bi bi-star-fill"></i> <span id="heroRating">N/A</span></span>
+                        <span class="meta-pill" id="heroYear">N/A</span>
+                    </div>
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <button class="btn trailer-btn" id="heroTrailerBtn" type="button" disabled><i class="bi bi-play-fill"></i> Watch Trailer</button>
+                        <button class="btn info-btn" id="heroInfoBtn" type="button" disabled><i class="bi bi-info-circle"></i> More Info</button>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+
+        <section id="search" class="search-wrap">
+            <form method="GET" class="row g-2 justify-content-center search-form">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="search-field">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" name="q" class="form-control search-input" placeholder="Search movies by title..." value="{{ request.GET.q }}">
+                    </div>
+                </div>
+                <div class="col-12 col-md-auto d-grid">
+                    <button class="btn search-btn" type="submit"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="favorites" class="section-block">
+            <h3 class="section-title">My Favorites</h3>
+            <div id="favoritesRow" class="horizontal-scroll">
+                <div class="empty-state w-100">No favorite movies yet. Tap the heart icon to save movies here.</div>
+            </div>
+        </section>
+
+        {% if movies %}
+            <section id="movies" class="section-block">
+                <h3 id="trending" class="section-title">Trending Movies</h3>
+                <div class="horizontal-scroll">
+                    {% for movie in movies|slice:":8" %}
+                        <article class="movie-card"
+                                 data-id="{{ movie.id }}"
+                                 data-title="{{ movie.title|escape }}"
+                                 data-overview="{{ movie.overview|default:'No overview available.'|escape }}"
+                                 data-rating="{{ movie.vote_average|floatformat:1 }}"
+                                 data-release="{{ movie.release_date|default:'N/A'|escape }}"
+                                 data-genre-ids="{% if movie.genre_ids %}{{ movie.genre_ids|join:',' }}{% else %}{% endif %}"
+                                 data-poster="{% if movie.poster_path %}https://image.tmdb.org/t/p/w500{{ movie.poster_path }}{% else %}https://via.placeholder.com/500x750?text=No+Poster{% endif %}">
+                            <div class="poster-wrap">
+                                <span class="rating-badge"><i class="bi bi-star-fill"></i> {{ movie.vote_average|floatformat:1 }}</span>
+                                <i class="bi bi-play-circle-fill play-icon"></i>
+                                <button class="fav-btn" type="button" aria-label="Save to favorites">
+                                    <i class="bi bi-heart-fill"></i>
+                                </button>
+                                {% if movie.poster_path %}
+                                    <img class="movie-poster" src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}">
+                                {% else %}
+                                    <img class="movie-poster" src="https://via.placeholder.com/500x750?text=No+Poster" alt="No poster">
+                                {% endif %}
+                            </div>
+                            <div class="movie-body">
+                                <h6 class="movie-title">{{ movie.title }}</h6>
+                                <div class="movie-year">📅 {{ movie.release_date|default:"N/A"|slice:":4" }}</div>
+                                <div class="movie-meta"><span class="rating">⭐ {{ movie.vote_average|floatformat:1 }}</span></div>
+                                <div class="movie-genre">Genres: <span class="genre-text">{% if movie.genre_ids %}{{ movie.genre_ids|join:', ' }}{% else %}N/A{% endif %}</span></div>
+                                <div class="card-actions">
+                                    <button class="btn card-trailer-btn watch-trailer-btn" type="button" data-movie-id="{{ movie.id }}" data-movie-title="{{ movie.title|escape }}" data-bs-toggle="modal" data-bs-target="#trailerModal"><i class="bi bi-play-fill"></i> Trailer</button>
+                                    <button class="btn card-info-btn details-btn" type="button" data-bs-toggle="modal" data-bs-target="#movieModal"><i class="bi bi-info-circle"></i> Details</button>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="section-block">
+                <h3 id="top-rated" class="section-title">Top Rated Movies</h3>
+                <div class="horizontal-scroll">
+                    {% for movie in movies|slice:"16:24" %}
+                        <article class="movie-card"
+                                 data-id="{{ movie.id }}"
+                                 data-title="{{ movie.title|escape }}"
+                                 data-overview="{{ movie.overview|default:'No overview available.'|escape }}"
+                                 data-rating="{{ movie.vote_average|floatformat:1 }}"
+                                 data-release="{{ movie.release_date|default:'N/A'|escape }}"
+                                 data-genre-ids="{% if movie.genre_ids %}{{ movie.genre_ids|join:',' }}{% else %}{% endif %}"
+                                 data-poster="{% if movie.poster_path %}https://image.tmdb.org/t/p/w500{{ movie.poster_path }}{% else %}https://via.placeholder.com/500x750?text=No+Poster{% endif %}">
+                            <div class="poster-wrap">
+                                <span class="rating-badge"><i class="bi bi-star-fill"></i> {{ movie.vote_average|floatformat:1 }}</span>
+                                <i class="bi bi-play-circle-fill play-icon"></i>
+                                <button class="fav-btn" type="button" aria-label="Save to favorites">
+                                    <i class="bi bi-heart-fill"></i>
+                                </button>
+                                {% if movie.poster_path %}
+                                    <img class="movie-poster" src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}">
+                                {% else %}
+                                    <img class="movie-poster" src="https://via.placeholder.com/500x750?text=No+Poster" alt="No poster">
+                                {% endif %}
+                            </div>
+                            <div class="movie-body">
+                                <h6 class="movie-title">{{ movie.title }}</h6>
+                                <div class="movie-year">📅 {{ movie.release_date|default:"N/A"|slice:":4" }}</div>
+                                <div class="movie-meta"><span class="rating">⭐ {{ movie.vote_average|floatformat:1 }}</span></div>
+                                <div class="movie-genre">Genres: <span class="genre-text">{% if movie.genre_ids %}{{ movie.genre_ids|join:', ' }}{% else %}N/A{% endif %}</span></div>
+                                <div class="card-actions">
+                                    <button class="btn card-trailer-btn watch-trailer-btn" type="button" data-movie-id="{{ movie.id }}" data-movie-title="{{ movie.title|escape }}" data-bs-toggle="modal" data-bs-target="#trailerModal"><i class="bi bi-play-fill"></i> Trailer</button>
+                                    <button class="btn card-info-btn details-btn" type="button" data-bs-toggle="modal" data-bs-target="#movieModal"><i class="bi bi-info-circle"></i> Details</button>
+                                </div>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="empty-state w-100">No top rated movies available.</div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="section-block">
+                <h3 id="popular" class="section-title">Popular Movies</h3>
+                <div class="horizontal-scroll">
+                    {% for movie in movies|slice:"8:16" %}
+                        <article class="movie-card"
+                                 data-id="{{ movie.id }}"
+                                 data-title="{{ movie.title|escape }}"
+                                 data-overview="{{ movie.overview|default:'No overview available.'|escape }}"
+                                 data-rating="{{ movie.vote_average|floatformat:1 }}"
+                                 data-release="{{ movie.release_date|default:'N/A'|escape }}"
+                                 data-genre-ids="{% if movie.genre_ids %}{{ movie.genre_ids|join:',' }}{% else %}{% endif %}"
+                                 data-poster="{% if movie.poster_path %}https://image.tmdb.org/t/p/w500{{ movie.poster_path }}{% else %}https://via.placeholder.com/500x750?text=No+Poster{% endif %}">
+                            <div class="poster-wrap">
+                                <span class="rating-badge"><i class="bi bi-star-fill"></i> {{ movie.vote_average|floatformat:1 }}</span>
+                                <i class="bi bi-play-circle-fill play-icon"></i>
+                                <button class="fav-btn" type="button" aria-label="Save to favorites">
+                                    <i class="bi bi-heart-fill"></i>
+                                </button>
+                                {% if movie.poster_path %}
+                                    <img class="movie-poster" src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}">
+                                {% else %}
+                                    <img class="movie-poster" src="https://via.placeholder.com/500x750?text=No+Poster" alt="No poster">
+                                {% endif %}
+                            </div>
+                            <div class="movie-body">
+                                <h6 class="movie-title">{{ movie.title }}</h6>
+                                <div class="movie-year">📅 {{ movie.release_date|default:"N/A"|slice:":4" }}</div>
+                                <div class="movie-meta"><span class="rating">⭐ {{ movie.vote_average|floatformat:1 }}</span></div>
+                                <div class="movie-genre">Genres: <span class="genre-text">{% if movie.genre_ids %}{{ movie.genre_ids|join:', ' }}{% else %}N/A{% endif %}</span></div>
+                                <div class="card-actions">
+                                    <button class="btn card-trailer-btn watch-trailer-btn" type="button" data-movie-id="{{ movie.id }}" data-movie-title="{{ movie.title|escape }}" data-bs-toggle="modal" data-bs-target="#trailerModal"><i class="bi bi-play-fill"></i> Trailer</button>
+                                    <button class="btn card-info-btn details-btn" type="button" data-bs-toggle="modal" data-bs-target="#movieModal"><i class="bi bi-info-circle"></i> Details</button>
+                                </div>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="empty-state w-100">No additional popular movies available.</div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% else %}
+            <section class="section-block">
+                <div class="empty-state">
+                    <h4 class="mb-2">No movies found</h4>
+                    <p class="mb-0">Try another search term.</p>
+                </div>
+            </section>
+        {% endif %}
+
+        <div id="skeletonLoader" class="skeleton-wrap">
+            <div class="skeleton-track">
+                <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+            </div>
+            <div class="skeleton-track">
+                <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="cineops-footer">
+        <div class="container-fluid px-3 px-md-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
+            <div><strong><i class="bi bi-film"></i> CineOps</strong></div>
+            <div>Powered by TMDB API</div>
+            <div>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer"><i class="bi bi-github"></i> GitHub</a>
+            </div>
+            <div>© 2026 CineOps. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="movieModal" tabindex="-1" aria-labelledby="movieModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="movieModalLabel">Movie Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <img id="modalPoster" src="" alt="Movie poster" class="modal-poster">
+                        </div>
+                        <div class="col-md-7">
+                            <h4 id="modalTitle" class="mb-3"></h4>
+                            <p id="modalOverview" class="text-secondary mb-3"></p>
+                            <p class="mb-2"><strong>Rating:</strong> <span id="modalRating"></span></p>
+                            <p class="mb-2"><strong>Release Date:</strong> <span id="modalRelease"></span></p>
+                            <p class="mb-3"><strong>Genres:</strong> <span id="modalGenres"></span></p>
+                            <div class="mb-3">
+                                <h6 class="mb-2">Where to Watch</h6>
+                                <div id="providersContainer" class="small text-secondary">Checking streaming availability...</div>
+                            </div>
+                            <button class="btn trailer-btn watch-trailer-btn" id="modalTrailerBtn" type="button" data-bs-toggle="modal" data-bs-target="#trailerModal">
+                                <i class="bi bi-play-fill"></i> Watch Trailer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="trailerModal" tabindex="-1" aria-labelledby="trailerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="trailerModalLabel">Trailer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="trailer-frame-wrap" id="trailerContainer">
+                        <div class="trailer-fallback">Loading trailer...</div>
+                    </div>
+                    <div id="trailerActions" class="trailer-actions">
+                        <a id="openYoutubeLink" class="btn info-btn" href="#" target="_blank" rel="noopener noreferrer">
+                            <i class="bi bi-box-arrow-up-right"></i> Open in YouTube
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const TMDB_API_KEY = 'c97532fa7afc9d029525522ad740a271';
+        const FAVORITES_KEY = 'cineops_favorites';
+
+        const GENRE_MAP = {
+            28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime',
+            99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History',
+            27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi',
+            10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western'
+        };
+
+        const movieModalEl = document.getElementById('movieModal');
+        const trailerModalEl = document.getElementById('trailerModal');
+        const trailerContainer = document.getElementById('trailerContainer');
+        const trailerActions = document.getElementById('trailerActions');
+        const openYoutubeLink = document.getElementById('openYoutubeLink');
+        const favoritesRow = document.getElementById('favoritesRow');
+        const modalTrailerBtn = document.getElementById('modalTrailerBtn');
+
+        let currentTrailer = null;
+
+        function parseGenreIds(rawIds) {
+            if (!rawIds) return [];
+            return String(rawIds)
+                .split(',')
+                .map(value => parseInt(value.trim(), 10))
+                .filter(Number.isFinite);
+        }
+
+        function getGenreNames(rawIds) {
+            const ids = parseGenreIds(rawIds);
+            if (!ids.length) return 'N/A';
+            return ids.map(id => GENRE_MAP[id] || `Genre ${id}`).join(', ');
+        }
+
+        function escapeHtml(text) {
+            return String(text || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function buildMovieFromCard(card) {
+            return {
+                id: card.dataset.id || '',
+                title: card.dataset.title || 'Untitled',
+                overview: card.dataset.overview || 'No overview available.',
+                rating: card.dataset.rating || 'N/A',
+                release: card.dataset.release || 'N/A',
+                genreIds: card.dataset.genreIds || '',
+                genres: getGenreNames(card.dataset.genreIds || ''),
+                poster: card.dataset.poster || 'https://via.placeholder.com/500x750?text=No+Poster'
+            };
+        }
+
+        function updateGenreLabels() {
+            document.querySelectorAll('.movie-card').forEach(card => {
+                const genreSpan = card.querySelector('.genre-text');
+                if (genreSpan) {
+                    genreSpan.textContent = getGenreNames(card.dataset.genreIds || '');
+                }
+            });
+        }
+
+        function populateMovieModal(movie) {
+            document.getElementById('modalTitle').textContent = movie.title;
+            document.getElementById('modalOverview').textContent = movie.overview;
+            document.getElementById('modalRating').textContent = movie.rating;
+            document.getElementById('modalRelease').textContent = movie.release;
+            document.getElementById('modalGenres').textContent = movie.genres;
+            document.getElementById('modalPoster').src = movie.poster;
+            modalTrailerBtn.setAttribute('data-movie-id', movie.id);
+            modalTrailerBtn.setAttribute('data-movie-title', movie.title);
+            loadWatchProviders(movie.id);
+        }
+
+        function pickProviderRegion(results) {
+            if (!results || typeof results !== 'object') return { code: null, data: null };
+
+            const hasAnyProviders = value => value && (value.flatrate?.length || value.rent?.length || value.buy?.length);
+
+            if (hasAnyProviders(results.IN)) return { code: 'IN', data: results.IN };
+            if (hasAnyProviders(results.US)) return { code: 'US', data: results.US };
+
+            for (const [code, value] of Object.entries(results)) {
+                if (hasAnyProviders(value)) return { code, data: value };
+            }
+
+            return { code: null, data: null };
+        }
+
+        function renderProviderCards(providers, regionLink) {
+            return providers.map(provider => {
+                const providerName = escapeHtml(provider.provider_name || 'Provider');
+                const providerLogo = provider.logo_path
+                    ? `https://image.tmdb.org/t/p/w92${provider.logo_path}`
+                    : 'https://via.placeholder.com/92x92?text=?';
+                const safeLogo = escapeHtml(providerLogo);
+                const safeLink = escapeHtml(regionLink || '#');
+
+                return `
+                    <a class="provider-card" href="${safeLink}" target="_blank" rel="noopener noreferrer" title="Open ${providerName}">
+                        <img class="provider-logo" src="${safeLogo}" alt="${providerName} logo">
+                        <span>${providerName}</span>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        async function loadWatchProviders(movieId) {
+            const container = document.getElementById('providersContainer');
+            if (!container) return;
+
+            if (!movieId) {
+                container.textContent = 'Streaming availability not found for this movie.';
+                return;
+            }
+
+            container.textContent = 'Checking streaming availability...';
+
+            try {
+                const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`);
+                if (!response.ok) throw new Error('Provider fetch failed');
+
+                const data = await response.json();
+                const { code, data: regionData } = pickProviderRegion(data.results || {});
+
+                if (!regionData) {
+                    container.textContent = 'Streaming availability not found for this movie.';
+                    return;
+                }
+
+                const groups = [
+                    { key: 'flatrate', label: 'Stream' },
+                    { key: 'rent', label: 'Rent' },
+                    { key: 'buy', label: 'Buy' }
+                ];
+
+                let renderedGroups = '';
+                for (const group of groups) {
+                    const providers = regionData[group.key] || [];
+                    if (!providers.length) continue;
+
+                    renderedGroups += `
+                        <div class="provider-group">
+                            <div class="provider-group-title">${group.label}</div>
+                            <div class="provider-grid">${renderProviderCards(providers, regionData.link)}</div>
+                        </div>
+                    `;
+                }
+
+                if (!renderedGroups) {
+                    container.textContent = 'Streaming availability not found for this movie.';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="provider-region">Region: ${escapeHtml(code || 'N/A')}</div>
+                    ${renderedGroups}
+                `;
+            } catch {
+                container.textContent = 'Streaming availability not found for this movie.';
+            }
+        }
+
+        async function fetchTrailerKey(movieId) {
+            const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${TMDB_API_KEY}`);
+            if (!response.ok) throw new Error('Unable to fetch trailer data');
+            const data = await response.json();
+            const videos = data.results || [];
+            const trailer = videos.find(video => video.site === 'YouTube' && video.type === 'Trailer')
+                || videos.find(video => video.site === 'YouTube' && video.type === 'Teaser')
+                || videos.find(video => video.site === 'YouTube');
+            return trailer ? trailer.key : null;
+        }
+
+        function setTrailerFallback(message, watchUrl = null) {
+            trailerContainer.innerHTML = `<div class="trailer-fallback">${message}</div>`;
+            if (watchUrl) {
+                openYoutubeLink.href = watchUrl;
+                trailerActions.classList.add('show');
+            } else {
+                trailerActions.classList.remove('show');
+            }
+        }
+
+        function resetTrailerContainer() {
+            trailerContainer.innerHTML = '<div class="trailer-fallback">Loading trailer...</div>';
+            trailerActions.classList.remove('show');
+            openYoutubeLink.href = '#';
+            currentTrailer = null;
+        }
+
+        async function openTrailer(movieId, movieTitle = 'Movie') {
+            resetTrailerContainer();
+            document.getElementById('trailerModalLabel').textContent = `${movieTitle} Trailer`;
+
+            try {
+                const key = await fetchTrailerKey(movieId);
+                if (!key) {
+                    setTrailerFallback('Trailer not available for this movie.');
+                    return;
+                }
+
+                const watchUrl = `https://www.youtube.com/watch?v=${key}`;
+                currentTrailer = { key, watchUrl };
+                openYoutubeLink.href = watchUrl;
+                trailerActions.classList.add('show');
+
+                const iframe = document.createElement('iframe');
+                iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+                iframe.allowFullscreen = true;
+                iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+                iframe.title = `${movieTitle} trailer`;
+                iframe.src = `https://www.youtube.com/embed/${key}?autoplay=1&rel=0&origin=${encodeURIComponent(window.location.origin)}`;
+
+                iframe.addEventListener('error', () => {
+                    setTrailerFallback('Embedding failed. Opening trailer on YouTube...', watchUrl);
+                    window.open(watchUrl, '_blank', 'noopener');
+                });
+
+                trailerContainer.innerHTML = '';
+                trailerContainer.appendChild(iframe);
+            } catch {
+                setTrailerFallback('Unable to load trailer right now. Please try YouTube.', currentTrailer ? currentTrailer.watchUrl : null);
+            }
+        }
+
+        async function loadRandomTrendingHero() {
+            const heroSection = document.getElementById('heroSection');
+            if (!heroSection) return;
+
+            try {
+                const response = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`);
+                if (!response.ok) return;
+                const data = await response.json();
+                const list = (data.results || []).filter(movie => movie && movie.id && movie.title);
+                if (!list.length) return;
+
+                const randomMovie = list[Math.floor(Math.random() * list.length)];
+                const posterPath = randomMovie.backdrop_path || randomMovie.poster_path;
+                const posterUrl = posterPath
+                    ? `https://image.tmdb.org/t/p/w1280${posterPath}`
+                    : 'https://via.placeholder.com/1280x720?text=No+Poster';
+                const detailPoster = randomMovie.poster_path
+                    ? `https://image.tmdb.org/t/p/w500${randomMovie.poster_path}`
+                    : 'https://via.placeholder.com/500x750?text=No+Poster';
+
+                heroSection.classList.add('has-image');
+                heroSection.style.backgroundImage = `linear-gradient(95deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.62) 42%, rgba(0,0,0,.28) 100%), url('${posterUrl}')`;
+
+                document.getElementById('heroTitle').textContent = randomMovie.title;
+                document.getElementById('heroOverview').textContent = randomMovie.overview || 'Discover trending cinema picks right now.';
+                document.getElementById('heroRating').textContent = (randomMovie.vote_average || 0).toFixed(1);
+                document.getElementById('heroYear').textContent = randomMovie.release_date ? randomMovie.release_date.slice(0, 4) : 'N/A';
+
+                const heroTrailerBtn = document.getElementById('heroTrailerBtn');
+                const heroInfoBtn = document.getElementById('heroInfoBtn');
+
+                if (heroTrailerBtn) {
+                    heroTrailerBtn.disabled = false;
+                    heroTrailerBtn.setAttribute('data-movie-id', randomMovie.id);
+                    heroTrailerBtn.setAttribute('data-movie-title', randomMovie.title);
+                }
+
+                if (heroInfoBtn) {
+                    heroInfoBtn.disabled = false;
+                    heroInfoBtn.setAttribute('data-id', randomMovie.id);
+                    heroInfoBtn.setAttribute('data-title', randomMovie.title);
+                    heroInfoBtn.setAttribute('data-overview', randomMovie.overview || 'No overview available.');
+                    heroInfoBtn.setAttribute('data-rating', (randomMovie.vote_average || 0).toFixed(1));
+                    heroInfoBtn.setAttribute('data-release', randomMovie.release_date || 'N/A');
+                    heroInfoBtn.setAttribute('data-genre-ids', (randomMovie.genre_ids || []).join(','));
+                    heroInfoBtn.setAttribute('data-poster', detailPoster);
+                }
+            } catch {
+                return;
+            }
+        }
+
+        function getFavorites() {
+            try {
+                return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        function setFavorites(favorites) {
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+        }
+
+        function isFavorite(id) {
+            return getFavorites().some(movie => String(movie.id) === String(id));
+        }
+
+        function favoriteTemplate(movie) {
+            const safeTitle = escapeHtml(movie.title);
+            const safeOverview = escapeHtml(movie.overview);
+            const safeRating = escapeHtml(movie.rating);
+            const safeRelease = escapeHtml(movie.release);
+            const safePoster = escapeHtml(movie.poster);
+            const safeGenreIds = escapeHtml(movie.genreIds || '');
+            const genres = escapeHtml(getGenreNames(movie.genreIds || ''));
+
+            return `
+                <article class="movie-card"
+                         data-id="${escapeHtml(movie.id)}"
+                         data-title="${safeTitle}"
+                         data-overview="${safeOverview}"
+                         data-rating="${safeRating}"
+                         data-release="${safeRelease}"
+                         data-genre-ids="${safeGenreIds}"
+                         data-poster="${safePoster}">
+                    <div class="poster-wrap">
+                        <span class="rating-badge"><i class="bi bi-star-fill"></i> ${safeRating}</span>
+                        <i class="bi bi-play-circle-fill play-icon"></i>
+                        <button class="fav-btn active" type="button" aria-label="Save to favorites">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                        <img class="movie-poster" src="${safePoster}" alt="${safeTitle}">
+                    </div>
+                    <div class="movie-body">
+                        <h6 class="movie-title">${safeTitle}</h6>
+                        <div class="movie-year">📅 ${(movie.release || 'N/A').slice(0, 4)}</div>
+                        <div class="movie-meta"><span class="rating">⭐ ${safeRating}</span></div>
+                        <div class="movie-genre">Genres: <span class="genre-text">${genres}</span></div>
+                        <div class="card-actions">
+                            <button class="btn card-trailer-btn watch-trailer-btn" type="button" data-movie-id="${escapeHtml(movie.id)}" data-movie-title="${safeTitle}" data-bs-toggle="modal" data-bs-target="#trailerModal"><i class="bi bi-play-fill"></i> Trailer</button>
+                            <button class="btn card-info-btn details-btn" type="button" data-bs-toggle="modal" data-bs-target="#movieModal"><i class="bi bi-info-circle"></i> Details</button>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderFavorites() {
+            const favorites = getFavorites();
+            if (!favoritesRow) return;
+
+            if (!favorites.length) {
+                favoritesRow.innerHTML = '<div class="empty-state w-100">No favorite movies yet. Tap the heart icon to save movies here.</div>';
+                return;
+            }
+
+            favoritesRow.innerHTML = favorites.map(favoriteTemplate).join('');
+            syncFavoriteIcons();
+        }
+
+        function syncFavoriteIcons() {
+            document.querySelectorAll('.movie-card').forEach(card => {
+                const favBtn = card.querySelector('.fav-btn');
+                if (!favBtn) return;
+                favBtn.classList.toggle('active', isFavorite(card.dataset.id));
+            });
+        }
+
+        function toggleFavorite(card) {
+            const favorites = getFavorites();
+            const movie = buildMovieFromCard(card);
+
+            const index = favorites.findIndex(item => String(item.id) === String(movie.id));
+            if (index >= 0) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.unshift(movie);
+            }
+
+            setFavorites(favorites.slice(0, 30));
+            renderFavorites();
+            syncFavoriteIcons();
+        }
+
+        document.addEventListener('click', function(event) {
+            const trailerBtn = event.target.closest('.watch-trailer-btn');
+            if (trailerBtn) {
+                const movieId = trailerBtn.getAttribute('data-movie-id');
+                const movieTitle = trailerBtn.getAttribute('data-movie-title') || 'Movie';
+                if (movieId) {
+                    openTrailer(movieId, movieTitle);
+                }
+            }
+
+            const card = event.target.closest('.movie-card');
+            if (!card) return;
+
+            const favoriteBtn = event.target.closest('.fav-btn');
+            if (favoriteBtn) {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleFavorite(card);
+                return;
+            }
+
+            const detailsBtn = event.target.closest('.details-btn');
+            if (detailsBtn || (!event.target.closest('.card-actions') && !trailerBtn)) {
+                const movie = buildMovieFromCard(card);
+                populateMovieModal(movie);
+                const modal = bootstrap.Modal.getOrCreateInstance(movieModalEl);
+                modal.show();
+            }
+        });
+
+        if (movieModalEl) {
+            movieModalEl.addEventListener('show.bs.modal', function(event) {
+                const trigger = event.relatedTarget;
+                if (!trigger) return;
+
+                const card = trigger.closest('.movie-card');
+                if (card) {
+                    populateMovieModal(buildMovieFromCard(card));
+                    return;
+                }
+
+                const movie = {
+                    id: trigger.getAttribute('data-id') || '',
+                    title: trigger.getAttribute('data-title') || 'Untitled',
+                    overview: trigger.getAttribute('data-overview') || 'No overview available.',
+                    rating: trigger.getAttribute('data-rating') || 'N/A',
+                    release: trigger.getAttribute('data-release') || 'N/A',
+                    genreIds: trigger.getAttribute('data-genre-ids') || '',
+                    genres: getGenreNames(trigger.getAttribute('data-genre-ids') || ''),
+                    poster: trigger.getAttribute('data-poster') || 'https://via.placeholder.com/500x750?text=No+Poster'
+                };
+                populateMovieModal(movie);
+            });
+        }
+
+        if (trailerModalEl) {
+            trailerModalEl.addEventListener('hidden.bs.modal', function() {
+                resetTrailerContainer();
+            });
+        }
+
+        document.querySelectorAll('.search-form').forEach(form => {
+            form.addEventListener('submit', function() {
+                const loader = document.getElementById('skeletonLoader');
+                if (loader) {
+                    loader.style.display = 'block';
+                }
+            });
+        });
+
+        updateGenreLabels();
+        renderFavorites();
+        syncFavoriteIcons();
+        loadRandomTrendingHero();
+    </script>
+</body>
+</html>
